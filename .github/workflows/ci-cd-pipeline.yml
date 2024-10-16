@@ -16,13 +16,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Validate AWS Region
-        env:
-          AWS_REGION: us-east-2  # Hardcoded value
-        run: |
-          echo "Validating AWS Region: $AWS_REGION"
-          aws ec2 describe-regions --region $AWS_REGION
-
       - name: Log in to Amazon ECR
         env:
           AWS_REGION: us-east-2  # Hardcoded value
