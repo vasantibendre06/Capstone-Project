@@ -60,15 +60,15 @@ jobs:
 
           # Connect to EC2 instance and deploy
           ssh -o StrictHostKeyChecking=no -i /path/to/your/key.pem ec2-user@$PUBLIC_IP << EOF
-            # Pull latest Docker images
-            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:frontend-$IMAGE_TAG
-            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:backend-$IMAGE_TAG
+            # Pull the latest Docker images
+            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:frontend-latest
+            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:backend-latest
 
             # Stop and remove existing containers
-            docker stop frontend backend || true
-            docker rm frontend backend || true
+            docker stop frontend-container backend-service-container || true
+            docker rm frontend-container backend-service-container || true
 
             # Run new containers
-            docker run -d --name frontend -p 80:80 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:frontend-$IMAGE_TAG
-            docker run -d --name backend -p 5000:5000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:backend-$IMAGE_TAG
+            docker run -d --name frontend-container -p 80:80 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:frontend-latest
+            docker run -d --name backend-service-container -p 5000:5000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:backend-latest
           EOF
