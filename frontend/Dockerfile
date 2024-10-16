@@ -1,8 +1,8 @@
 # Step 1: Use the official Node.js image as a base
-FROM node:20 AS build
+FROM node:14 AS build
 
 # Step 2: Set the working directory in the container
-WORKDIR ./
+WORKDIR /usr/src/app
 
 # Step 3: Copy package.json and package-lock.json (if available)
 COPY package*.json ./
@@ -10,8 +10,11 @@ COPY package*.json ./
 # Step 4: Install the dependencies
 RUN npm install
 
-# Step 5: Copy the rest of your application code
-COPY . .
+# Copy the rest of the application files
+COPY .env ./
+
+COPY src/ ./src/
+COPY public/ ./public/
 
 # Step 6: Build the React application
 RUN npm run build
