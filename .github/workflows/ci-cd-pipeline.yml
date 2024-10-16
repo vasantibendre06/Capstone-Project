@@ -7,68 +7,57 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v1
 
-      - name: Log in to Amazon ECR
-        env:
-          AWS_REGION: us-east-2
-          ECR_REPOSITORY: capstone-ecr
-        run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com
-
-      - name: Build and tag Docker images for frontend and backend
-        run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest ./frontend
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest ./backend
-
-      - name: Push Docker images to Amazon ECR
-        run: |
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up AWS CLI
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Deploy to EC2
-        env:
-          AWS_REGION: us-east-2
-          IMAGE_TAG: latest
+      - name: Login to Amazon ECR
         run: |
-          INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=my-ec2-instance" --query "Reservations[].Instances[].InstanceId" --output text)
-          PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[].Instances[].PublicIpAddress" --output text)
+          aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 975050161532.dkr.ecr.us-east-2.amazonaws.com
 
-          # Connect to EC2 instance and deploy
-          ssh -o StrictHostKeyChecking=no -i /path/to/your/key.pem ec2-user@$PUBLIC_IP << EOF
-            # Pull the latest Docker images
-            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:frontend-latest
-            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:backend-latest
+      - name: Build Backend Docker image
+        run: docker build -t backend-service ./backend
 
-            # Stop and remove existing containers
-            docker stop frontend-container backend-service-container || true
-            docker rm frontend-container backend-service-container || true
+      - name: Build Frontend Docker image
+        run: |
+          # Create a .env file with the public IP for API URL
+          echo "REACT_APP_API_URL=http://${{ secrets.EC2_PUBLIC_IP }}:5000" > ./frontend/.env
+          docker build -t frontend-service ./frontend
 
-            # Run new containers
-            docker run -d --name frontend-container -p 80:80 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:frontend-latest
-            docker run -d --name backend-service-container -p 5000:5000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/capstone-ecr:backend-latest
-          EOF
+      - name: Tag and Push Backend Docker image to ECR
+        run: |
+          docker tag backend-service:latest 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
+          docker push 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
+
+      - name: Tag and Push Frontend Docker image to ECR
+        run: |
+          docker tag frontend-service:latest 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
+          docker push 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
+
+      - name: Deploy to Docker
+        run: |
+          # Pull the latest images
+          docker pull 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
+          docker pull 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
+          
+          # Stop and remove existing containers if they exist
+          docker stop backend-service-container || true
+          docker rm backend-service-container || true
+          docker stop frontend-container || true
+          docker rm frontend-container || true
+          
+          # Run new containers with port mapping
+          docker run -d --restart always --name backend-service-container -p 5000:5000 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
+          docker run -d --restart always --name frontend-container -p 80:80 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
