@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install the dependencies
 RUN npm install
 
+# Copy the rest of your application code
+COPY . .
+
 # Stage 2: Production
 FROM node:14-alpine
 
@@ -17,11 +20,16 @@ FROM node:14-alpine
 WORKDIR /usr/src/app
 
 # Copy only the necessary files from the builder stage
-COPY --from=builder /usr/src/app .
+COPY --from=builder /usr/src/app ./
 
 # Remove dev dependencies to keep the image clean
 RUN npm prune --production
 
+# Expose the port
+EXPOSE 5000
+
+# Command to run the application
+CMD ["node", "index.js"]
 # Expose the port
 EXPOSE 5000
 
