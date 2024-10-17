@@ -4,8 +4,7 @@ function App() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    // Fetch users from the backend API, using the environment variable for the API URL
-    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const API_URL = process.env.REACT_APP_API_URL || 'http://18.191.194.11:5000';
     fetch(`${API_URL}/api/users`)
       .then(response => response.json())
       .then(data => setUsers(data))
