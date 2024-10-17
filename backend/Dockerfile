@@ -17,7 +17,7 @@ FROM node:14-alpine
 WORKDIR /usr/src/app
 
 # Copy only the necessary files from the builder stage
-COPY --from=builder /usr/src/app .
+COPY --from=builder /usr/src/app ./
 
 # Remove dev dependencies to keep the image clean
 RUN npm prune --production
