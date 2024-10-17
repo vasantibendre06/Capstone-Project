@@ -4,7 +4,7 @@ function App() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const API_URL = process.env.REACT_APP_API_URL || 'http://18.191.194.11:5000';
+    const API_URL =  'http://18.191.194.11:5000' || process.env.REACT_APP_API_URL;
     fetch(`${API_URL}/api/users`)
       .then(response => response.json())
       .then(data => setUsers(data))
