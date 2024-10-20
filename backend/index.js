@@ -4,7 +4,9 @@ const PORT = 5000;
 
 // Middleware to allow CORS (Cross-Origin Resource Sharing)
 const cors = require('cors');
-app.use(cors());
+app.use(cors({
+  origin: 'http://18.216.222.56',
+));
 
 // Sample data
 const users = [
