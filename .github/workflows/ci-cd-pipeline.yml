@@ -25,13 +25,14 @@ jobs:
           aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 975050161532.dkr.ecr.us-east-2.amazonaws.com
 
       - name: Build Backend Docker image
-        run: docker build -t backend-service ./backend
+        run: docker build --no-cache -t backend-service ./backend
+        
 
       - name: Build Frontend Docker image
         run: |
           # Create a .env file with the public IP for API URL
           
-          docker build -t frontend-service ./frontend
+          docker build --no-cache -t frontend-service ./frontend
 
       - name: Tag and Push Backend Docker image to ECR
         run: |
