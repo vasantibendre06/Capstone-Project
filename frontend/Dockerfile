@@ -11,12 +11,11 @@ COPY package*.json ./
 # Step 4: Install the dependencies
 RUN npm install
 
-# Copy the rest of the application files
-COPY .env ./
-
 # COPY src/ ./src/
 # COPY public/ ./public/
 COPY . .
+
+RUN echo "Hi There"
 
 # Step 6: Build the React application
 RUN npm run build
