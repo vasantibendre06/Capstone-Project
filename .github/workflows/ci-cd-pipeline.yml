@@ -59,8 +59,8 @@ jobs:
           docker run -d --restart always --name backend-service-container -p 5000:5000 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
           docker run -d --restart always --name frontend-container -p 80:80 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
 
-            - name: Create CloudWatch Log Group
-      - run: |
+      - name: Create CloudWatch Log Group
+        run: |
           aws logs create-log-group --log-group-name my-app-log-group || echo "Log group already exists"
 
       - name: Create CloudWatch Log Stream for Backend
@@ -81,8 +81,8 @@ jobs:
             --threshold 1 \
             --comparison-operator GreaterThanThreshold \
             --evaluation-periods 1 \
-            --alarm-actions arn:aws:sns:us-east-2:your-account-id:your-sns-topic \
-            --dimensions Name=LoadBalancerName,Value=your-load-balancer-name
+            --alarm-actions arn:aws:sns:us-east-2:975050161532:CapstoneSNS \
+            --dimensions Name=InstanceId,Value=i-0943e6cb3daebba26
 
       - name: Enable CloudWatch Alarms for High Resource Usage
         run: |
