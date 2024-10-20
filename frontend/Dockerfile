@@ -25,9 +25,6 @@ RUN echo "Hi There"
 # Step 6: Build the React application
 RUN npm run build
 
-# Step 8: Copy the build files to the Nginx server
-COPY /app/build /usr/share/nginx/html
-
 # Step 9: Expose the port the app runs on
 EXPOSE 80
 
