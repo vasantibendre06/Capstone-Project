@@ -12,6 +12,12 @@ const users = [
   { id: 2, name: 'Bob' }
 ];
 
+app.get("/",(req, res) => {
+  res.json({
+    message: "The server is running..."
+  });
+});
+
 // API endpoint to get users
 app.get('/api/users', (req, res) => {
   res.json(users);
