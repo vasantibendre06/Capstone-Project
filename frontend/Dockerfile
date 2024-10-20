@@ -3,7 +3,7 @@ FROM node:14 AS build
 
 # Step 2: Set the working directory in the container
 # WORKDIR /usr/src/app
-WORKDIR ./
+WORKDIR /app
 
 # Step 3: Copy package.json and package-lock.json (if available)
 COPY package*.json ./
