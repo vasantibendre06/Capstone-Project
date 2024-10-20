@@ -5,6 +5,7 @@ function App() {
 
   useEffect(() => {
     const API_URL = 'http://18.216.222.56:5000';
+    console.log(API_URL);
     fetch(`${API_URL}/api/users`)
       .then(response => response.json())
       .then(data => setUsers(data))
