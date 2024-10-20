@@ -1,5 +1,5 @@
 # Step 1: Use the official Node.js image as a base
-FROM node:14 AS build
+FROM node:16 AS build
 
 # Step 2: Set the working directory in the container
 # WORKDIR /usr/src/app
@@ -13,6 +13,9 @@ RUN npm cache clean --force
 # Step 4: Install the dependencies
 RUN npm install
 
+# Install the serve package globally
+RUN npm install -g serve
+
 # COPY src/ ./src/
 # COPY public/ ./public/
 COPY . .
@@ -22,9 +25,6 @@ RUN echo "Hi There"
 # Step 6: Build the React application
 RUN npm run build
 
-# Step 7: Use a lightweight web server to serve the build files
-FROM nginx:alpine
-
 # Step 8: Copy the build files to the Nginx server
 COPY /app/build /usr/share/nginx/html
 
@@ -32,4 +32,4 @@ COPY /app/build /usr/share/nginx/html
 EXPOSE 80
 
 # Step 10: Command to run the Nginx server
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["serve", "-s", "build", "-l", "80"]
