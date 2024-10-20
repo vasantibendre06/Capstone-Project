@@ -75,7 +75,7 @@ jobs:
         run: |
           aws cloudwatch put-metric-alarm --alarm-name BackendErrorRateAlarm \
             --metric-name 5XXError \
-            --namespace AWS/ELB \
+            --namespace AWS/EC2 \
             --statistic Sum \
             --period 300 \
             --threshold 1 \
