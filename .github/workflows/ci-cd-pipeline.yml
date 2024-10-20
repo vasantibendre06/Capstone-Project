@@ -58,3 +58,41 @@ jobs:
           # Run new containers with port mapping
           docker run -d --restart always --name backend-service-container -p 5000:5000 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
           docker run -d --restart always --name frontend-container -p 80:80 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
+
+            - name: Create CloudWatch Log Group
+      - run: |
+          aws logs create-log-group --log-group-name my-app-log-group || echo "Log group already exists"
+
+      - name: Create CloudWatch Log Stream for Backend
+        run: |
+          aws logs create-log-stream --log-group-name my-app-log-group --log-stream-name backend-log-stream || echo "Log stream already exists"
+
+      - name: Create CloudWatch Log Stream for Frontend
+        run: |
+          aws logs create-log-stream --log-group-name my-app-log-group --log-stream-name frontend-log-stream || echo "Log stream already exists"
+
+      - name: Enable CloudWatch Alarms for Backend Error Rate
+        run: |
+          aws cloudwatch put-metric-alarm --alarm-name BackendErrorRateAlarm \
+            --metric-name 5XXError \
+            --namespace AWS/ELB \
+            --statistic Sum \
+            --period 300 \
+            --threshold 1 \
+            --comparison-operator GreaterThanThreshold \
+            --evaluation-periods 1 \
+            --alarm-actions arn:aws:sns:us-east-2:your-account-id:your-sns-topic \
+            --dimensions Name=LoadBalancerName,Value=your-load-balancer-name
+
+      - name: Enable CloudWatch Alarms for High Resource Usage
+        run: |
+          aws cloudwatch put-metric-alarm --alarm-name HighResourceUsageAlarm \
+            --metric-name CPUUtilization \
+            --namespace AWS/EC2 \
+            --statistic Average \
+            --period 300 \
+            --threshold 80 \
+            --comparison-operator GreaterThanThreshold \
+            --evaluation-periods 1 \
+            --alarm-actions arn:aws:sns:us-east-2:975050161532:CapstoneSNS \
+            --dimensions Name=InstanceId,Value=i-0943e6cb3daebba26
