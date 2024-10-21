@@ -4,7 +4,7 @@ function App() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const API_URL = 'http://52.15.252.231:5000';
+    const API_URL = 'http://18.224.5.250:5000';
     console.log(API_URL);
     fetch(`${API_URL}/api/users`)
       .then(response => response.json())
