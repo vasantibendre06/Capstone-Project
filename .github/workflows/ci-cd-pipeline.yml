@@ -44,6 +44,13 @@ jobs:
           docker tag frontend-service:latest 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
           docker push 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
 
+      # Create CloudWatch Log Groups for Backend and Frontend
+      - name: Create CloudWatch Log Group
+        run: |
+          aws logs create-log-group --log-group-name capstone_backend_log_group || true
+          aws logs create-log-group --log-group-name capstone_frontend_log_group || true
+
+      # Deploy to Docker with CloudWatch logging
       - name: Deploy to Docker
         run: |
           # Pull the latest images
@@ -56,7 +63,18 @@ jobs:
           docker stop frontend-container || true
           docker rm frontend-container || true
           
-          # Run new containers with port mapping
-          docker run -d --restart always --name backend-service-container -p 5000:5000 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
-          docker run -d --restart always --name frontend-container -p 80:80 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
-          
+          # Run Backend Container with CloudWatch logging
+          docker run -d --restart always --name backend-service-container \
+            --log-driver=awslogs \
+            --log-opt awslogs-region=us-east-2 \
+            --log-opt awslogs-group=capstone_proj_backend_log_group \
+            --log-opt awslogs-stream=backend \
+            -p 5000:5000 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:backend-latest
+
+          # Run Frontend Container with CloudWatch logging
+          docker run -d --restart always --name frontend-container \
+            --log-driver=awslogs \
+            --log-opt awslogs-region=us-east-2 \
+            --log-opt awslogs-group=capstone_proj_frontend_log_group \
+            --log-opt awslogs-stream=frontend \
+            -p 80:80 975050161532.dkr.ecr.us-east-2.amazonaws.com/capstone-ecr:frontend-latest
